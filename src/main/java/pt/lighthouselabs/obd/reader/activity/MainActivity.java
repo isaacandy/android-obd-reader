@@ -128,6 +128,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
             {
                 queueCommands();
             }
+
             // run again in period defined in preferences
             new Handler().postDelayed(mQueueCommands, ConfigActivity.getUpdatePeriod(prefs));
         }
