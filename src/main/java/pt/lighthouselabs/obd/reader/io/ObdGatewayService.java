@@ -24,6 +24,7 @@ import pt.lighthouselabs.obd.commands.temperature.AmbientAirTemperatureObdComman
 import pt.lighthouselabs.obd.enums.ObdProtocols;
 import pt.lighthouselabs.obd.reader.R;
 import pt.lighthouselabs.obd.reader.activity.ConfigActivity;
+import pt.lighthouselabs.obd.reader.activity.ConfigFragment;
 import pt.lighthouselabs.obd.reader.activity.MainActivity;
 import pt.lighthouselabs.obd.reader.io.ObdCommandJob.ObdCommandJobState;
 
@@ -62,7 +63,7 @@ public class ObdGatewayService extends AbstractGatewayService
         Log.d(TAG, "Starting service..");
 
         // get the remote Bluetooth device
-        final String remoteDevice = prefs.getString(ConfigActivity.BLUETOOTH_LIST_KEY, null);
+        final String remoteDevice = prefs.getString(ConfigFragment.BLUETOOTH_LIST_KEY, null);
         if (remoteDevice == null || "".equals(remoteDevice))
         {
             Toast.makeText(ctx, "No Bluetooth device selected", Toast.LENGTH_LONG).show();
@@ -82,8 +83,8 @@ public class ObdGatewayService extends AbstractGatewayService
      *
      * Get more preferences
      */
-        boolean imperialUnits = prefs.getBoolean(ConfigActivity.IMPERIAL_UNITS_KEY, false);
-        ArrayList<ObdCommand> cmds = ConfigActivity.getObdCommands(prefs);
+        boolean imperialUnits = prefs.getBoolean(ConfigFragment.IMPERIAL_UNITS_KEY, false);
+        ArrayList<ObdCommand> cmds = ConfigFragment.getObdCommands(prefs);
 
     /*
      * Establish Bluetooth connection
@@ -171,7 +172,7 @@ public class ObdGatewayService extends AbstractGatewayService
         queueJob(new ObdCommandJob(new TimeoutObdCommand(62)));
 
         // Get protocol from preferences
-        String protocol = prefs.getString(ConfigActivity.PROTOCOLS_LIST_KEY, "AUTO");
+        String protocol = prefs.getString(ConfigFragment.PROTOCOLS_LIST_KEY, "AUTO");
         queueJob(new ObdCommandJob(new SelectProtocolObdCommand(ObdProtocols.valueOf(protocol))));
 
         // Job for returning dummy data

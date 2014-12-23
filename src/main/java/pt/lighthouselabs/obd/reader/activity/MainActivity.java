@@ -130,7 +130,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
             }
 
             // run again in period defined in preferences
-            new Handler().postDelayed(mQueueCommands, ConfigActivity.getUpdatePeriod(prefs));
+            new Handler().postDelayed(mQueueCommands, ConfigFragment.getUpdatePeriod(prefs));
         }
     };
 
@@ -146,7 +146,6 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
             service.setContext(MainActivity.this);
             Log.d(TAG, "Starting the live data");
             service.startService();
-
         }
 
         // This method is *only* called when the connection to the service is lost unexpectedly
@@ -179,16 +178,18 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.activity_main);
 
-        //
+        // Link cml to the class
         tvCompass = (TextView) findViewById(R.id.compass_text);
         llContainer = (LinearLayout) findViewById(R.id.vehicle_view);
         tlContents = (TableLayout) findViewById(R.id.data_table);
 
+        // init SP
+        prefs = getSharedPreferences(TAG, Context.MODE_PRIVATE);
+
         // get Bluetooth device
         final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
-
         preRequisites = btAdapter != null;
         if (preRequisites)
         {

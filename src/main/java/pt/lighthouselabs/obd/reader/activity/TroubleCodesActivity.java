@@ -1,6 +1,5 @@
 package pt.lighthouselabs.obd.reader.activity;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -13,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -30,7 +30,7 @@ import pt.lighthouselabs.obd.enums.ObdProtocols;
 import pt.lighthouselabs.obd.exceptions.UnableToConnectException;
 import pt.lighthouselabs.obd.reader.R;
 
-public class TroubleCodesActivity extends Activity
+public class TroubleCodesActivity extends ActionBarActivity
 {
     private ProgressDialog progressDialog;
 
@@ -68,7 +68,7 @@ public class TroubleCodesActivity extends Activity
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
 
-        remoteDevice = prefs.getString(ConfigActivity.BLUETOOTH_LIST_KEY, null);
+        remoteDevice = prefs.getString(ConfigFragment.BLUETOOTH_LIST_KEY, null);
         if (remoteDevice == null || "".equals(remoteDevice))
         {
             Log.e(TAG, "No Bluetooth device has been selected.");
