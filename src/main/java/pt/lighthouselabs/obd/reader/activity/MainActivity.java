@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -24,13 +25,12 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.inject.Inject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,12 +48,8 @@ import pt.lighthouselabs.obd.reader.net.ObdReading;
 import pt.lighthouselabs.obd.reader.net.ObdService;
 import retrofit.RestAdapter;
 import retrofit.client.Response;
-import roboguice.activity.RoboActivity;
-import roboguice.inject.ContentView;
-import roboguice.inject.InjectView;
 
-@ContentView(R.layout.main)
-public class MainActivity extends RoboActivity implements ObdProgressListener
+public class MainActivity extends ActionBarActivity implements ObdProgressListener
 {
 
     // TODO make this configurable
@@ -72,7 +68,6 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
 
     private float[] mGravity;
     private float[] mGeomagnetic;
-
     private final SensorEventListener orientListener = new SensorEventListener()
     {
         public void onSensorChanged(SensorEvent event)
@@ -103,7 +98,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
                     orientation[2] = (float) Math.toDegrees(orientation[2]); // Y
 
                     String dir = getDirection(orientation[1]); // x = orientation[1]
-                    updateTextView(compass, dir);
+                    updateTextView(tvCompass, dir);
 
 //                    Log.d(TAG, "x= " + orientation[1]);
                 }
@@ -113,7 +108,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
             {
                 float x = event.values[0];
                 String dir = getDirection(x);
-                updateTextView(compass, dir);
+                updateTextView(tvCompass, dir);
 
 //                Log.d(TAG, "x= " + x);
             }
@@ -137,25 +132,6 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
             new Handler().postDelayed(mQueueCommands, ConfigActivity.getUpdatePeriod(prefs));
         }
     };
-
-    @InjectView(R.id.compass_text)
-    private TextView compass;
-
-    @InjectView(R.id.vehicle_view)
-    private LinearLayout vv;
-
-    @InjectView(R.id.data_table)
-    private TableLayout tl;
-    @Inject
-    private SensorManager sensorManager;
-    private Sensor accelerometer;
-    private Sensor magnetometer;
-    @Inject
-    private PowerManager powerManager;
-    @Inject
-    private SharedPreferences prefs;
-    private boolean isServiceBound;
-
 
     private AbstractGatewayService service;
     private ServiceConnection serviceConn = new ServiceConnection()
@@ -184,14 +160,30 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
     };
 
     private Sensor orientSensor = null;
-    private PowerManager.WakeLock wakeLock = null;
     private boolean preRequisites = true;
+
+    private TextView tvCompass;
+    private LinearLayout llContainer;
+    private TableLayout tlContents;
+
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
+    private Sensor magnetometer;
+    private PowerManager powerManager;
+    private SharedPreferences prefs;
+    private boolean isServiceBound;
 
 
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+
+        //
+        tvCompass = (TextView) findViewById(R.id.compass_text);
+        llContainer = (LinearLayout) findViewById(R.id.vehicle_view);
+        tlContents = (TableLayout) findViewById(R.id.data_table);
 
         // get Bluetooth device
         final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -239,11 +231,14 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
     {
         super.onResume();
         Log.d(TAG, "Resuming..");
+
+        // Register listener
         sensorManager.registerListener(orientListener, orientSensor, SensorManager.SENSOR_DELAY_UI);
         sensorManager.registerListener(orientListener, accelerometer, SensorManager.SENSOR_DELAY_UI);
         sensorManager.registerListener(orientListener, magnetometer, SensorManager.SENSOR_DELAY_UI);
 
-        wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "ObdReader");
+        // Prevent screen from going off
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
@@ -251,8 +246,9 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
     {
         super.onPause();
         Log.d(TAG, "Pausing..");
+
+        // Unregister listener
         sensorManager.unregisterListener(orientListener);
-        releaseWakeLockIfHeld();
     }
 
     @Override
@@ -260,21 +256,12 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
     {
         super.onDestroy();
 
-        releaseWakeLockIfHeld();
+        // Clear flag
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         if (isServiceBound)
         {
             doUnbindService();
-        }
-    }
-
-    /**
-     * If lock is held, release. Lock will be held when the service is running.
-     */
-    private void releaseWakeLockIfHeld()
-    {
-        if (wakeLock.isHeld())
-        {
-            wakeLock.release();
         }
     }
 
@@ -330,9 +317,9 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
             cmdResult = job.getCommand().getFormattedResult();
         }
 
-        if (vv.findViewWithTag(cmdID) != null)
+        if (llContainer.findViewWithTag(cmdID) != null)
         {
-            TextView existingTV = (TextView) vv.findViewWithTag(cmdID);
+            TextView existingTV = (TextView) llContainer.findViewWithTag(cmdID);
             existingTV.setText(cmdResult);
         }
         else
@@ -387,14 +374,11 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
     private void startLiveData()
     {
         Log.d(TAG, "Starting live data..");
-        tl.removeAllViews(); //start fresh
+        tlContents.removeAllViews(); //start fresh
         doBindService();
 
         // start command execution
         new Handler().post(mQueueCommands);
-
-        // screen won't turn off until wakeLock.release()
-        wakeLock.acquire();
     }
 
     private void stopLiveData()
@@ -402,8 +386,6 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
         Log.d(TAG, "Stopping live data..");
 
         doUnbindService();
-
-        releaseWakeLockIfHeld();
     }
 
     protected Dialog onCreateDialog(int id)
@@ -466,7 +448,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener
         value.setTag(id);
         tr.addView(name);
         tr.addView(value);
-        tl.addView(tr, params);
+        tlContents.addView(tr, params);
     }
 
 
