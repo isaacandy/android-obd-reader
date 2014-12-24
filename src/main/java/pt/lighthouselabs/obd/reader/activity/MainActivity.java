@@ -407,7 +407,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
     }
 
     private void stopLiveData()
-    { 
+    {
         Log.d(TAG, "Stopping live data..");
 
         doUnbindService();
