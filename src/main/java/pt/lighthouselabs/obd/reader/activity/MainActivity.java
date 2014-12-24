@@ -58,7 +58,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
 
     // TODO make this configurable
     private static final String ENDPOINT = "http://10.0.3.2:8080/obd"; // -> /_ah/api
-    private static final boolean UPLOAD = true;
+    private static final boolean UPLOAD = false;
 
     private static final String TAG = MainActivity.class.getName();
     public static final int NO_BLUETOOTH_ID = 0;
@@ -257,6 +257,32 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu)
+    {
+        MenuItem startItem = menu.findItem(START_LIVE_DATA);
+        MenuItem stopItem = menu.findItem(STOP_LIVE_DATA);
+        MenuItem settingsItem = menu.findItem(SETTINGS);
+        MenuItem getDTCItem = menu.findItem(GET_DTC);
+
+        if (service != null && service.isRunning())
+        {
+            getDTCItem.setEnabled(false);
+            startItem.setEnabled(false);
+            stopItem.setEnabled(true);
+            settingsItem.setEnabled(false);
+        }
+        else
+        {
+            getDTCItem.setEnabled(true);
+            stopItem.setEnabled(false);
+            startItem.setEnabled(true);
+            settingsItem.setEnabled(true);
+        }
+
+        return true;
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         menu.add(0, START_LIVE_DATA, 0, "Start Live Data");
@@ -387,49 +413,6 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
         doUnbindService();
     }
 
-    protected Dialog onCreateDialog(int id)
-    {
-        AlertDialog.Builder build = new AlertDialog.Builder(this);
-        switch (id)
-        {
-            case NO_BLUETOOTH_ID:
-                build.setMessage("Sorry, your device doesn't support Bluetooth.");
-                return build.create();
-            case BLUETOOTH_DISABLED:
-                build.setMessage("You have Bluetooth disabled. Please enable it!");
-                return build.create();
-            case NO_ORIENTATION_SENSOR:
-                build.setMessage("Orientation sensor missing?");
-                return build.create();
-        }
-        return null;
-    }
-
-    public boolean onPrepareOptionsMenu(Menu menu)
-    {
-        MenuItem startItem = menu.findItem(START_LIVE_DATA);
-        MenuItem stopItem = menu.findItem(STOP_LIVE_DATA);
-        MenuItem settingsItem = menu.findItem(SETTINGS);
-        MenuItem getDTCItem = menu.findItem(GET_DTC);
-
-        if (service != null && service.isRunning())
-        {
-            getDTCItem.setEnabled(false);
-            startItem.setEnabled(false);
-            stopItem.setEnabled(true);
-            settingsItem.setEnabled(false);
-        }
-        else
-        {
-            getDTCItem.setEnabled(true);
-            stopItem.setEnabled(false);
-            startItem.setEnabled(true);
-            settingsItem.setEnabled(true);
-        }
-
-        return true;
-    }
-
     private void addTableRow(String id, String key, String val)
     {
 
@@ -495,6 +478,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
             {
                 service.stopService();
             }
+
             Log.d(TAG, "Unbinding OBD service..");
             unbindService(serviceConn);
             isServiceBound = false;

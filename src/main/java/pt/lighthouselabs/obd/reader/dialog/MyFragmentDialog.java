@@ -16,6 +16,7 @@ import pt.lighthouselabs.obd.reader.activity.MainActivity;
  */
 public class MyFragmentDialog extends DialogFragment
 {
+    private static final String NO_BLUETOOTH = "Sorry, your device doesn't support Bluetooth.";
     private static final String BLUETOOTH_IS_OFF = "Bluetooth is disabled, will use Mock service instead";
     private static final String ERR_ORIENTATION_SENSOR = "Oops, your device doesn't have orientation sensor :(";
 
@@ -51,6 +52,10 @@ public class MyFragmentDialog extends DialogFragment
 
         switch (mMode)
         {
+            case MainActivity.NO_BLUETOOTH_ID:
+                tvMessage.setText(NO_BLUETOOTH);
+                break;
+
             case MainActivity.BLUETOOTH_DISABLED:
                 tvMessage.setText(BLUETOOTH_IS_OFF);
                 break;
