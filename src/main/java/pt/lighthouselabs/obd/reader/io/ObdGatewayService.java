@@ -27,6 +27,7 @@ import pt.lighthouselabs.obd.reader.activity.ConfigActivity;
 import pt.lighthouselabs.obd.reader.activity.ConfigFragment;
 import pt.lighthouselabs.obd.reader.activity.MainActivity;
 import pt.lighthouselabs.obd.reader.io.ObdCommandJob.ObdCommandJobState;
+import pt.lighthouselabs.obd.reader.utility.Device;
 
 /**
  * This service is primarily responsible for establishing and maintaining a
@@ -49,7 +50,8 @@ public class ObdGatewayService extends AbstractGatewayService
      * are connecting to an Android peer then please generate your own unique
      * UUID."
      */
-    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+//    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static UUID MY_UUID;
     private final IBinder binder = new ObdGatewayServiceBinder();
 
     private SharedPreferences prefs;
@@ -61,6 +63,9 @@ public class ObdGatewayService extends AbstractGatewayService
     public void startService()
     {
         Log.d(TAG, "Starting service..");
+
+        // get UUID
+        MY_UUID = Device.getDeviceUUID(this);
 
         // get the remote Bluetooth device
         final String remoteDevice = prefs.getString(ConfigFragment.BLUETOOTH_LIST_KEY, null);

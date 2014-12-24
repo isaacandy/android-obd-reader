@@ -57,7 +57,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
 {
 
     // TODO make this configurable
-    private static final String ENDPOINT = "http://10.0.3.2:8080"; // -> /_ah/api
+    private static final String ENDPOINT = "http://10.0.3.2:8080/obd"; // -> /_ah/api
     private static final boolean UPLOAD = true;
 
     private static final String TAG = MainActivity.class.getName();
@@ -203,13 +203,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
         if (!preRequisites)
         {
             displayDialog(BLUETOOTH_DISABLED);
-            Toast.makeText(this, "BT is disabled, will use Mock service instead", Toast.LENGTH_SHORT).show();
         }
-        else
-        {
-            Toast.makeText(this, "Bluetooth ok", Toast.LENGTH_SHORT).show();
-        }
-
 
         // get required sensors
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -378,6 +372,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
     private void startLiveData()
     {
         Log.d(TAG, "Starting live data..");
+
         tlContents.removeAllViews(); //start fresh
         doBindService();
 
@@ -478,6 +473,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
         if (!isServiceBound)
         {
             Log.d(TAG, "Binding OBD service..");
+
             if (preRequisites)
             {
                 Intent serviceIntent = new Intent(this, ObdGatewayService.class);

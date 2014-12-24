@@ -52,7 +52,12 @@ public abstract class AbstractGatewayService extends Service
     {
         super.onDestroy();
         Log.d(TAG, "Destroying service...");
-        notificationManager.cancel(NOTIFICATION_ID);
+
+        if (notificationManager != null)
+        {
+            notificationManager.cancel(NOTIFICATION_ID);
+        }
+
         Log.d(TAG, "Service destroyed.");
     }
 
@@ -109,7 +114,6 @@ public abstract class AbstractGatewayService extends Service
                     executeQueue();
                 }
             });
-
             t.start();
         }
     }

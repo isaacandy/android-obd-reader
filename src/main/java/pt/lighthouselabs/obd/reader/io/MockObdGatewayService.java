@@ -16,6 +16,7 @@ import pt.lighthouselabs.obd.reader.activity.MainActivity;
 import pt.lighthouselabs.obd.reader.io.ObdCommandJob.ObdCommandJobState;
 
 /**
+ * <p/>
  * This service is primarily responsible for establishing and maintaining a
  * permanent connection between the device where the application runs and a more
  * OBD Bluetooth interface.
@@ -66,7 +67,9 @@ public class MockObdGatewayService extends AbstractGatewayService
     protected void executeQueue()
     {
         Log.d(TAG, "Executing queue..");
+
         isQueueRunning = true;
+
         while (!jobsQueue.isEmpty())
         {
             ObdCommandJob job = null;
@@ -80,7 +83,7 @@ public class MockObdGatewayService extends AbstractGatewayService
                 {
                     Log.d(TAG, "Job state is NEW. Run it..");
                     job.setState(ObdCommandJobState.RUNNING);
-                    Log.d(TAG, job.getCommand().getName());
+                    Log.d(TAG, "command name: " + job.getCommand().getName());
                     job.getCommand().run(new ByteArrayInputStream("41 00 00 00>41 00 00 00>41 00 00 00>".getBytes()), new ByteArrayOutputStream());
                 }
                 else
@@ -91,13 +94,17 @@ public class MockObdGatewayService extends AbstractGatewayService
             catch (Exception e)
             {
                 e.printStackTrace();
-                job.setState(ObdCommandJobState.EXECUTION_ERROR);
+                if (job != null)
+                {
+                    job.setState(ObdCommandJobState.EXECUTION_ERROR);
+                }
+
                 Log.e(TAG, "Failed to run command. -> " + e.getMessage());
             }
 
             if (job != null)
             {
-                Log.d(TAG, "Job is finished.");
+                Log.d(TAG, "Job[" + job.getId() + "] is finished.");
                 job.setState(ObdCommandJobState.FINISHED);
                 final ObdCommandJob job2 = job;
                 ((MainActivity) ctx).runOnUiThread(new Runnable()
@@ -108,9 +115,9 @@ public class MockObdGatewayService extends AbstractGatewayService
                         ((MainActivity) ctx).stateUpdate(job2);
                     }
                 });
-
             }
         }
+
         // will run next time a job is queued
         isQueueRunning = false;
     }
@@ -123,7 +130,11 @@ public class MockObdGatewayService extends AbstractGatewayService
     {
         Log.d(TAG, "Stopping service..");
 
-        notificationManager.cancel(NOTIFICATION_ID);
+        if (notificationManager != null)
+        {
+            notificationManager.cancel(NOTIFICATION_ID);
+        }
+
         jobsQueue.removeAll(jobsQueue); // TODO is this safe?
         isRunning = false;
 
