@@ -17,6 +17,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Gravity;
@@ -40,6 +43,7 @@ import pt.lighthouselabs.obd.enums.AvailableCommandNames;
 import pt.lighthouselabs.obd.reader.ObdProgressListener;
 import pt.lighthouselabs.obd.reader.R;
 import pt.lighthouselabs.obd.reader.config.ObdConfig;
+import pt.lighthouselabs.obd.reader.dialog.MyFragmentDialog;
 import pt.lighthouselabs.obd.reader.io.AbstractGatewayService;
 import pt.lighthouselabs.obd.reader.io.MockObdGatewayService;
 import pt.lighthouselabs.obd.reader.io.ObdCommandJob;
@@ -57,14 +61,14 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
     private static final boolean UPLOAD = true;
 
     private static final String TAG = MainActivity.class.getName();
-    private static final int NO_BLUETOOTH_ID = 0;
-    private static final int BLUETOOTH_DISABLED = 1;
-    private static final int START_LIVE_DATA = 2;
-    private static final int STOP_LIVE_DATA = 3;
-    private static final int SETTINGS = 4;
-    private static final int GET_DTC = 5;
-    private static final int TABLE_ROW_MARGIN = 7;
-    private static final int NO_ORIENTATION_SENSOR = 8;
+    public static final int NO_BLUETOOTH_ID = 0;
+    public static final int BLUETOOTH_DISABLED = 1;
+    public static final int START_LIVE_DATA = 2;
+    public static final int STOP_LIVE_DATA = 3;
+    public static final int SETTINGS = 4;
+    public static final int GET_DTC = 5;
+    public static final int TABLE_ROW_MARGIN = 7;
+    public static final int NO_ORIENTATION_SENSOR = 8;
 
     private float[] mGravity;
     private float[] mGeomagnetic;
@@ -100,7 +104,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
                     String dir = getDirection(orientation[1]); // x = orientation[1]
                     updateTextView(tvCompass, dir);
 
-//                    Log.d(TAG, "x= " + orientation[1]);
+                    //                    Log.d(TAG, "x= " + orientation[1]);
                 }
             }
 
@@ -110,7 +114,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
                 String dir = getDirection(x);
                 updateTextView(tvCompass, dir);
 
-//                Log.d(TAG, "x= " + x);
+                //                Log.d(TAG, "x= " + x);
             }
         }
 
@@ -185,7 +189,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
         llContainer = (LinearLayout) findViewById(R.id.vehicle_view);
         tlContents = (TableLayout) findViewById(R.id.data_table);
 
-        // init SP
+        // Init SP
         prefs = getSharedPreferences(TAG, Context.MODE_PRIVATE);
 
         // get Bluetooth device
@@ -198,7 +202,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
 
         if (!preRequisites)
         {
-//            showDialog(BLUETOOTH_DISABLED);
+            displayDialog(BLUETOOTH_DISABLED);
             Toast.makeText(this, "BT is disabled, will use Mock service instead", Toast.LENGTH_SHORT).show();
         }
         else
@@ -207,25 +211,16 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
         }
 
 
-        // get Orientation sensor
+        // get required sensors
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-
         orientSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
         if (orientSensor == null)
         {
-            //            showDialog(NO_ORIENTATION_SENSOR);
+            displayDialog(NO_ORIENTATION_SENSOR);
             Toast.makeText(this, "NO_ORIENTATION_SENSOR", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    @Override
-    protected void onStart()
-    {
-        super.onStart();
-        Log.d(TAG, "Entered onStart...");
-
     }
 
     @Override
@@ -267,18 +262,48 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
         }
     }
 
-    private void updateConfig()
-    {
-        startActivity(new Intent(this, ConfigActivity.class));
-    }
-
+    @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         menu.add(0, START_LIVE_DATA, 0, "Start Live Data");
         menu.add(0, STOP_LIVE_DATA, 0, "Stop Live Data");
         menu.add(0, GET_DTC, 0, "Get DTC");
         menu.add(0, SETTINGS, 0, "Settings");
+
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        switch (item.getItemId())
+        {
+            case START_LIVE_DATA:
+                startLiveData();
+                return true;
+
+            case STOP_LIVE_DATA:
+                stopLiveData();
+                return true;
+
+            case SETTINGS:
+                updateConfig();
+                return true;
+
+            case GET_DTC:
+                getTroubleCodes();
+                return true;
+
+            // case COMMAND_ACTIVITY:
+            // staticCommand();
+            // return true;
+        }
+        return false;
+    }
+
+    private void updateConfig()
+    {
+        startActivity(new Intent(this, ConfigActivity.class));
     }
 
     public void updateTextView(final TextView view, final String txt)
@@ -344,29 +369,6 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
     // Intent commandIntent = new Intent(this, ObdReaderCommandActivity.class);
     // startActivity(commandIntent);
     // }
-
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        switch (item.getItemId())
-        {
-            case START_LIVE_DATA:
-                startLiveData();
-                return true;
-            case STOP_LIVE_DATA:
-                stopLiveData();
-                return true;
-            case SETTINGS:
-                updateConfig();
-                return true;
-            case GET_DTC:
-                getTroubleCodes();
-                return true;
-            // case COMMAND_ACTIVITY:
-            // staticCommand();
-            // return true;
-        }
-        return false;
-    }
 
     private void getTroubleCodes()
     {
@@ -567,5 +569,19 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
         }
 
         return dir;
+    }
+
+    private void displayDialog(int mode)
+    {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag("dialog");
+        if (fragment != null)
+        {
+            ft.remove(fragment);
+        }
+        ft.addToBackStack(null);
+
+        DialogFragment newFragment = MyFragmentDialog.newInstance(mode);
+        newFragment.show(ft, "dialog");
     }
 }
