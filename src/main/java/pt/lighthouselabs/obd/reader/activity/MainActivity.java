@@ -1,7 +1,5 @@
 package pt.lighthouselabs.obd.reader.activity;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
@@ -190,7 +188,7 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
         tlContents = (TableLayout) findViewById(R.id.data_table);
 
         // Init SP
-        prefs = getSharedPreferences(TAG, Context.MODE_PRIVATE);
+        prefs = getSharedPreferences(ConfigFragment.PREFS, Context.MODE_PRIVATE);
 
         // get Bluetooth device
         final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -424,10 +422,12 @@ public class MainActivity extends ActionBarActivity implements ObdProgressListen
         TextView name = new TextView(this);
         name.setGravity(Gravity.RIGHT);
         name.setText(key + ": ");
+        
         TextView value = new TextView(this);
         value.setGravity(Gravity.LEFT);
         value.setText(val);
         value.setTag(id);
+        
         tr.addView(name);
         tr.addView(value);
         tlContents.addView(tr, params);

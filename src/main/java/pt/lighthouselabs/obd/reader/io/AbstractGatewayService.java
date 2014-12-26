@@ -23,8 +23,8 @@ public abstract class AbstractGatewayService extends Service
     private static final String TAG = AbstractGatewayService.class.getName();
 
     public static final int NOTIFICATION_ID = 1;
+    
     protected NotificationManager notificationManager;
-
     protected Context ctx;
     protected boolean isRunning = false;
     private final IBinder binder = new AbstractGatewayServiceBinder();
@@ -43,7 +43,7 @@ public abstract class AbstractGatewayService extends Service
     public void onCreate()
     {
         super.onCreate();
-        Log.d(TAG, "Creating service..");
+        Log.d(TAG, "Creating service..");        
         Log.d(TAG, "Service created.");
     }
 
@@ -125,7 +125,18 @@ public abstract class AbstractGatewayService extends Service
     {
         final PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, new Intent(ctx, MainActivity.class), 0);
         final NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(ctx);
-        notificationBuilder.setContentTitle(contentTitle).setContentText(contentText).setSmallIcon(icon).setContentIntent(contentIntent).setWhen(System.currentTimeMillis());
+        notificationBuilder
+                .setContentTitle(contentTitle)
+                .setContentText(contentText)
+                .setSmallIcon(icon)
+                .setContentIntent(contentIntent)
+                .setWhen(System.currentTimeMillis());
+        
+        final Notification notification = notificationBuilder.build();
+
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(0, notification);
+        
         // can cancel?
         if (ongoing)
         {
@@ -141,7 +152,7 @@ public abstract class AbstractGatewayService extends Service
         }
         if (notify)
         {
-            notificationManager.notify(NOTIFICATION_ID, notificationBuilder.getNotification());
+            notificationManager.notify(NOTIFICATION_ID, notification);
         }
     }
 

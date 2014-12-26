@@ -26,7 +26,7 @@ import pt.lighthouselabs.obd.reader.config.ObdConfig;
 public class ConfigFragment extends PreferenceFragment implements
         Preference.OnPreferenceChangeListener
 {
-
+    public static final String PREFS = "SharedPreferences";
     public static final String BLUETOOTH_LIST_KEY = "bluetooth_list_preference";
     public static final String UPLOAD_URL_KEY = "upload_url_preference";
     public static final String UPLOAD_DATA_KEY = "upload_data_preference";

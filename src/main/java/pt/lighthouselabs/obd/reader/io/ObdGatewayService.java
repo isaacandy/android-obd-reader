@@ -3,6 +3,7 @@ package pt.lighthouselabs.obd.reader.io;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
@@ -68,6 +69,10 @@ public class ObdGatewayService extends AbstractGatewayService
         MY_UUID = Device.getDeviceUUID(this);
 
         // get the remote Bluetooth device
+        if (prefs == null)
+        {
+            prefs = getSharedPreferences(ConfigFragment.PREFS, Context.MODE_PRIVATE);
+        }
         final String remoteDevice = prefs.getString(ConfigFragment.BLUETOOTH_LIST_KEY, null);
         if (remoteDevice == null || "".equals(remoteDevice))
         {
@@ -81,8 +86,11 @@ public class ObdGatewayService extends AbstractGatewayService
         }
 
         final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
-        dev = btAdapter.getRemoteDevice(remoteDevice);
-
+        if (remoteDevice != null)
+        {
+            dev = btAdapter.getRemoteDevice(remoteDevice);
+        }
+        
     /*
      * TODO clean
      *
@@ -248,7 +256,11 @@ public class ObdGatewayService extends AbstractGatewayService
     {
         Log.d(TAG, "Stopping service..");
 
-        notificationManager.cancel(NOTIFICATION_ID);
+        if(notificationManager != null)
+        {
+            notificationManager.cancel(NOTIFICATION_ID);
+        }
+        
         jobsQueue.removeAll(jobsQueue); // TODO is this safe?
         isRunning = false;
 
